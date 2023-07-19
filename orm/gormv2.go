@@ -2,9 +2,11 @@ package orm
 
 import (
 	"errors"
+	"time"
 
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
 	"gorm.io/gorm/schema"
 )
 
@@ -33,6 +35,16 @@ func RegisterEngineModel(engine string, dst ...interface{}) {
 	v := _engineModels[engine]
 	v = append(v, dst...)
 	_engineModels[engine] = v
+}
+
+// 在NewDB之前调用
+func SetLogger(w logger.Writer) {
+	gconf.Logger = logger.New(w, logger.Config{
+		SlowThreshold:             time.Second, // Slow SQL threshold
+		LogLevel:                  logger.Info, // Log level
+		IgnoreRecordNotFoundError: true,        // Ignore ErrRecordNotFound error for logger
+		Colorful:                  false,       // Disable color
+	})
 }
 
 func NewDB(o *Options) (db *gorm.DB, err error) {
