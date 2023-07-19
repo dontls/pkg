@@ -1,6 +1,8 @@
 package orm
 
 import (
+	"database/sql/driver"
+	"encoding/json"
 	"time"
 
 	"gorm.io/gorm"
@@ -28,4 +30,26 @@ type UpdatedAt struct {
 func (UpdatedAt) BeforeUpdate(tx *gorm.DB) error {
 	tx.Statement.SetColumn("UpdatedAt", time.Now().Format(timeformat))
 	return nil
+}
+
+type StringArray []string
+
+func (p StringArray) Value() (driver.Value, error) {
+	return json.Marshal(p)
+}
+
+func (p *StringArray) Scan(data interface{}) error {
+	return json.Unmarshal(data.([]byte), &p)
+}
+
+type UintArray []uint
+
+// Value insert
+func (j UintArray) Value() (driver.Value, error) {
+	return json.Marshal(&j)
+}
+
+// Scan valueof
+func (t *UintArray) Scan(v interface{}) error {
+	return json.Unmarshal(v.([]byte), t)
 }
