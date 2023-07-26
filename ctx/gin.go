@@ -72,7 +72,7 @@ func JSONWrite(h gin.H, c *gin.Context) {
 }
 
 // JSONWriteTotal
-func JSONWriteTotal(total, data interface{}, c *gin.Context) {
+func JSONWriteTotal(total int64, data interface{}, c *gin.Context) {
 	JSON(StatusOK).Write(gin.H{"total": total, "data": data}, c)
 }
 
