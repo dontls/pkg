@@ -4,6 +4,7 @@ import (
 	"errors"
 	"time"
 
+	// "github.com/glebarez/sqlite"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
@@ -58,10 +59,10 @@ func NewDB(o *Options) (db *gorm.DB, err error) {
 			DontSupportRenameColumn:   true,  // 用 `change` 重命名列，MySQL 8 之前的数据库和 MariaDB 不支持重命名列
 			SkipInitializeWithVersion: false, // 根据版本自动配置
 		}), &gconf)
-	case "sqlite3":
-		// db, err = gorm.Open(sqlite.Open(address), &gconf)
+	case "sqlite":
+		// db, err = gorm.Open(sqlite.Open(o.Address), &gconf)
 	case "postgresql":
-		// db, err = gorm.Open(postgres.Open(address), &gconf)
+		// db, err = gorm.Open(postgres.Open(o.Address), &gconf)
 	default:
 	}
 	if err != nil {
@@ -74,6 +75,7 @@ func NewDB(o *Options) (db *gorm.DB, err error) {
 	if err != nil {
 		return nil, err
 	}
+	SetDB(db)
 	// SetMaxIdleCons 设置连接池中的最大闲置连接数。
 	sqldb.SetMaxIdleConns(10)
 	// SetMaxOpenCons 设置数据库的最大连接数量。
@@ -83,6 +85,5 @@ func NewDB(o *Options) (db *gorm.DB, err error) {
 	for k, v := range _engineModels {
 		db.Set("gorm:table_options", "ENGINE="+k).AutoMigrate(v...)
 	}
-	_db = db
 	return db, nil
 }
