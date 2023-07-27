@@ -9,7 +9,7 @@ import (
 
 var (
 	StatusFail         = -1  // 失败
-	StatusOK           = 0   // 成功
+	StatusOK           = 200 // 成功
 	StatusError        = 500 // 错误
 	StatusLoginExpired = 401 // 登录过期
 	StatusForbidden    = 403 // 无权限
