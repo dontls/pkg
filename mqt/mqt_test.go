@@ -39,8 +39,8 @@ func TestStomp(t *testing.T) {
 		log.Fatalln(err)
 	}
 	defer c.Release()
-	dest := "/queue/test/stomp"
-	c.Subscribe(dest, func(b []byte) error {
+	dest := "/topic/test/stomp"
+	c.Subscribe(dest+"@client-1", func(b []byte) error {
 		log.Printf("%s:1 %s\n", dest, b)
 		return nil
 	})
@@ -76,7 +76,7 @@ func TestNats(t *testing.T) {
 }
 
 func TestKafka(t *testing.T) {
-	c, err := NewKafka(&Options{Address: "172.16.60.219:9092"})
+	c, err := News("kafka", &Options{Address: "172.16.60.219:9092"}, 1)
 	if err != nil {
 		log.Fatalln(err)
 	}
