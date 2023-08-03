@@ -8,13 +8,12 @@ func init() {
 	Plugins["amqp"] = NewAmqp
 }
 
-
 type AmqpCli struct {
 	Conn     *amqp.Connection
 	channel  *amqp.Channel
 	exchange string
 	routing  string
-	*Option
+	*Options
 }
 
 func NewAmqp(opt *Options) (Interface, error) {

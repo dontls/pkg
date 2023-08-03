@@ -11,7 +11,7 @@ func init() {
 type MqttCli struct {
 	Conn    mqtt.Client
 	connOpt *mqtt.ClientOptions
-	*Option
+	*Options
 }
 
 func (o *MqttCli) connectServe() error {
