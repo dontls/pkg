@@ -35,10 +35,18 @@ type Girl struct {
 }
 
 func init() {
-	_, err := NewDB(&Options{Name: "mysql", Address: "root:123456@tcp(172.16.50.219:3306)/test?charset=utf8&parseTime=True&loc=Local"})
-	if err != nil {
-		log.Fatalln(err)
-	}
+	// if err := CreateDB(sqlite.Open("test.db"))
+	// if err := CreateDB(postgres.Open())
+	// if err := CreateDB(mysql.New(mysql.Config{
+	// 	DSN: "root:123456@tcp(172.16.50.219:3306)/test?charset=utf8&parseTime=True&loc=Local",
+	// 	// DefaultStringSize:         64,    // string 类型字段的默认长度
+	// 	DisableDatetimePrecision:  true,  // 禁用 datetime 精度，MySQL 5.6 之前的数据库不支持
+	// 	DontSupportRenameIndex:    true,  // 重命名索引时采用删除并新建的方式，MySQL 5.7 之前的数据库和 MariaDB 不支持重命名索引
+	// 	DontSupportRenameColumn:   true,  // 用 `change` 重命名列，MySQL 8 之前的数据库和 MariaDB 不支持重命名列
+	// 	SkipInitializeWithVersion: false, // 根据版本自动配置
+	// }), true); err != nil {
+	// 	log.Fatalln(err)
+	// }
 }
 
 func TestOrm(t *testing.T) {

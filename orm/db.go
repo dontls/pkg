@@ -12,16 +12,11 @@ var _db *gorm.DB
 type H map[string]interface{}
 
 // SetDB gorm对象
-func SetDB(db *gorm.DB) {
-	_db = db
-}
-
-// SetDB gorm对象
 func DB() *gorm.DB {
 	return _db
 }
 
-func Model(v interface{}) *gorm.DB {
+func DbModel(v interface{}) *gorm.DB {
 	return _db.Model(v)
 }
 
@@ -148,4 +143,3 @@ func DbFindPage(query string, obj interface{}, page, size int) (int64, error) {
 	}
 	return total, db.Scan(obj).Error
 }
-
