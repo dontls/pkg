@@ -7,10 +7,14 @@ import (
 	"time"
 )
 
+var index = 0
+
 func getPushData() []byte {
+	index++
 	v := map[string]interface{}{
 		"device": "20198002",
 		"now":    time.Now().Format("2006-01-02 15:04:05"),
+		"index":  index,
 	}
 	data, _ := json.Marshal(v)
 	return data
@@ -33,6 +37,7 @@ func TestMqtt(t *testing.T) {
 	}
 }
 
+// Fixme 区分publisher, subscriber
 func TestStomp(t *testing.T) {
 	c, err := News("stomp", &Options{Address: "127.0.0.1:35002"}, 3)
 	if err != nil {
