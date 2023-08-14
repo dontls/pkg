@@ -35,7 +35,7 @@ func NewStomp(opt *Options) (Interface, error) {
 	}
 	defer conn.Close()
 	cli.ConnOpt = append(cli.ConnOpt, stomp.ConnOpt.HeartBeat(10*time.Second, 10*time.Second))
-	// 保障定于不read timeout
+	// 保障链接不read timeout
 	cli.ConnOpt = append(cli.ConnOpt, stomp.ConnOpt.HeartBeatError(360*time.Second))
 	if opt.User != "" {
 		cli.ConnOpt = append(cli.ConnOpt, stomp.ConnOpt.Login(opt.User, opt.Pswd))
@@ -77,7 +77,7 @@ func (o *StompCli) Subscribe(dest string, handler func([]byte) error) (err error
 	if o.Conn, err = stomp.Dial("tcp", o.Address, opts...); err != nil {
 		return err
 	}
-	s, err := o.Conn.Subscribe(arrs[0], stomp.AckAuto, subOpts...)
+	s, err := o.Conn.Subscribe(arrs[0], stomp.AckClient, subOpts...)
 	if err != nil {
 		return err
 	}
