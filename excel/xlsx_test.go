@@ -16,6 +16,10 @@ type Student struct {
 	Status bool
 }
 
+func (Student) SheetTitles() []string {
+	return []string{"编号", "姓名", "地址", "城市", "详细地址", "分数", "状态"}
+}
+
 func TestXlsx(t *testing.T) {
 	v := []Student{
 		{
@@ -47,5 +51,5 @@ func TestXlsx(t *testing.T) {
 			Status: false,
 		},
 	}
-	Sheet(&Student{}, "student").Write(&v).ToFile("./")
+	Sheet("student", v).WriteFile("./")
 }

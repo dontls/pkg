@@ -12,42 +12,6 @@ import (
 	"github.com/tealeg/xlsx"
 )
 
-type excel struct {
-	filename string
-	file     *xlsx.File
-	sheet    *xlsx.Sheet
-}
-
-func Sheet(v interface{}, sheet string) *excel {
-	r := &excel{}
-	typOf := reflect.TypeOf(v)
-	if typOf.Kind() == reflect.Ptr {
-		typOf = typOf.Elem()
-	}
-	r.filename = fmt.Sprintf("%s_%s.xlsx", sheet, time.Now().Format("2006-01-02 150405"))
-	r.file = xlsx.NewFile()
-	r.sheet, _ = r.file.AddSheet(sheet)
-	titleRow := r.sheet.AddRow()
-	titles := r.scanTitles(typOf)
-	for _, v := range titles {
-		titleRow.AddCell().Value = v
-	}
-	return r
-}
-
-func (o *excel) scanTitles(typOf reflect.Type) []string {
-	var titles []string
-	for i := 0; i < typOf.NumField(); i++ {
-		f := typOf.Field(i)
-		if f.Type.Kind() == reflect.Struct && f.Anonymous {
-			titles = append(titles, o.scanTitles(f.Type)...)
-		} else {
-			titles = append(titles, f.Name)
-		}
-	}
-	return titles
-}
-
 // Writes a struct to row r. Accepts a pointer to struct type 'e',
 // and the number of columns to write, `cols`. If 'cols' is < 0,
 // the entire struct will be written if possible. Returns -1 if the 'e'
@@ -85,31 +49,81 @@ func (o *excel) addRow(r *xlsx.Row, v reflect.Value, cols int) int {
 	return k
 }
 
-func (o *excel) Write(v interface{}) *excel {
-	valOf := reflect.ValueOf(v)
-	if valOf.Kind() == reflect.Ptr {
-		valOf = valOf.Elem()
+type excel struct {
+	filename string
+	file     *xlsx.File
+	sheet    *xlsx.Sheet
+}
+
+// 自定义title接口
+type ITitles interface {
+	SheetTitles() []string
+}
+
+func Sheet(sheet string, v interface{}) *excel {
+	r := &excel{}
+	r.filename = fmt.Sprintf("%s_%s.xlsx", sheet, time.Now().Format("2006-01-02 150405"))
+	r.file = xlsx.NewFile()
+	r.sheet, _ = r.file.AddSheet(sheet)
+	titleRow := r.sheet.AddRow()
+	value, titles := scanTitles(v)
+	for _, v := range titles {
+		titleRow.AddCell().Value = v
 	}
-	switch valOf.Kind() {
+	r.setData(value)
+	return r
+}
+
+func structTitles(typOf reflect.Type) []string {
+	var titles []string
+	for i := 0; i < typOf.NumField(); i++ {
+		f := typOf.Field(i)
+		if f.Type.Kind() == reflect.Struct && f.Anonymous {
+			titles = append(titles, structTitles(f.Type)...)
+		} else {
+			titles = append(titles, f.Name)
+		}
+	}
+	return titles
+}
+
+func scanTitles(v interface{}) (reflect.Value, []string) {
+	value := reflect.ValueOf(v)
+	if value.Kind() == reflect.Ptr {
+		value = value.Elem()
+	}
+	vtype := value.Type()
+	if value.Kind() == reflect.Slice {
+		vtype = value.Type().Elem()
+	}
+	if t, ok := reflect.New(vtype).Interface().(ITitles); ok {
+		return value, t.SheetTitles()
+	}
+	return value, structTitles(vtype)
+}
+
+func (o *excel) setData(value reflect.Value) *excel {
+	switch value.Kind() {
 	case reflect.Slice:
-		for i := 0; i < valOf.Len(); i++ {
-			o.addRow(o.sheet.AddRow(), valOf.Index(i), -1)
+		for i := 0; i < value.Len(); i++ {
+			o.addRow(o.sheet.AddRow(), value.Index(i), -1)
 		}
 	default:
-		o.addRow(o.sheet.AddRow(), valOf, -1)
+		o.addRow(o.sheet.AddRow(), value, -1)
 	}
 	return o
 }
 
-func (o *excel) To(c *gin.Context) {
+func (o *excel) Write(c *gin.Context) error {
 	var buffer bytes.Buffer
 	o.file.Write(&buffer)
 	content := bytes.NewReader(buffer.Bytes())
 	c.Writer.Header().Add("Content-Disposition", fmt.Sprintf(`attachment; filename="%s"`, o.filename))
 	c.Writer.Header().Add("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
 	http.ServeContent(c.Writer, c.Request, o.filename, time.Now(), content)
+	return nil
 }
 
-func (o *excel) ToFile(dir string) {
-	o.file.Save(filepath.Join(dir, o.filename))
+func (o *excel) WriteFile(dir string) error {
+	return o.file.Save(filepath.Join(dir, o.filename))
 }
