@@ -1,4 +1,4 @@
-package sqlu
+package sqlr
 
 import (
 	"encoding/json"
@@ -14,6 +14,15 @@ func _reflectValue(v interface{}) reflect.Value {
 		value = value.Elem()
 	}
 	return value
+}
+
+// 反射生成slice的基本类型对象
+func BaseModel(dest interface{}) interface{} {
+	value := _reflectValue(dest)
+	if value.Type().Kind() == reflect.Slice {
+		return reflect.New(value.Type().Elem()).Interface()
+	}
+	return nil
 }
 
 // 返回值 s: sprintf类型格式; n: 字段名

@@ -1,4 +1,4 @@
-package sqlu
+package sqlr
 
 import (
 	"fmt"

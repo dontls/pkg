@@ -1,12 +1,11 @@
-package sqlu
+package sqlr
 
 import (
 	"database/sql"
 	"fmt"
 	"log"
 	"testing"
-
-	_ "github.com/go-sql-driver/mysql"
+	// _ "github.com/go-sql-driver/mysql"
 )
 
 type A struct {

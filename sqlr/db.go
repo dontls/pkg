@@ -1,4 +1,4 @@
-package sqlu
+package sqlr
 
 import (
 	"database/sql"
@@ -10,6 +10,16 @@ var errDbOpened = errors.New("db open error")
 
 type DB struct {
 	db *sql.DB
+}
+
+var _db = &DB{}
+
+func Default() *DB {
+	return _db
+}
+
+func (o *DB) Set(db *sql.DB) {
+	o.db = db
 }
 
 func (o *DB) Exec(query string, args ...interface{}) (sql.Result, error) {
@@ -52,15 +62,6 @@ func (o *DB) Get(dest interface{}, query string, args ...interface{}) error {
 	fields := SqlValuesAddr(dest)
 	for rows.Next() {
 		return rows.Scan(fields...)
-	}
-	return nil
-}
-
-// 反射生成slice的基本类型对象
-func (o *DB) SliceTypeValue(dest interface{}) interface{} {
-	value := _reflectValue(dest)
-	if value.Type().Kind() == reflect.Slice {
-		return reflect.New(value.Type().Elem()).Interface()
 	}
 	return nil
 }
