@@ -26,19 +26,18 @@ func (p *Program) Stop(s service.Service) error {
 	return p.Shutdown()
 }
 
-var tracefile = filepath.Dir(os.Args[0]) + "/" + time.Now().Format("20060102150405") + ".dump"
+var dumpfile = filepath.Dir(os.Args[0]) + "/" + time.Now().Format("20060102150405") + ".dump"
 
 func Run(p *Program) {
 	defer func() {
-		logFile, err := os.OpenFile(tracefile, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0766)
-		if err == nil {
-			log.SetOutput(logFile) // 将文件设置为log输出的文件
-			log.SetFlags(log.LstdFlags | log.Lshortfile | log.LUTC)
-		}
 		if err := recover(); err != nil {
 			const size = 64 << 10
 			buf := make([]byte, size)
 			buf = buf[:runtime.Stack(buf, false)]
+			if logFile, err := os.OpenFile(dumpfile, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0766); err == nil {
+				log.SetOutput(logFile) // 将文件设置为log输出的文件
+				log.SetFlags(log.LstdFlags | log.Lshortfile | log.LUTC)
+			}
 			log.Fatalf("runtime error: %v\ntraceback:\n%v\n", err, *(*string)(unsafe.Pointer(&buf)))
 		}
 	}()
