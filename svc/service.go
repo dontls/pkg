@@ -55,7 +55,7 @@ func Run(p *Program) {
 		} else if os.Args[1] == "uninstall" {
 			err = s.Uninstall()
 		}
-		log.Println(err)
+		log.Println(app, os.Args[1], err)
 		return
 	}
 	err = s.Run()
