@@ -11,7 +11,7 @@ var _db *gorm.DB
 // H 多列处理
 type H map[string]interface{}
 
-// SetDB gorm对象
+// gorm对象
 func DB() *gorm.DB {
 	return _db
 }
