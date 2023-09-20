@@ -43,20 +43,31 @@ func NewStomp(opt *Options) (Interface, error) {
 	return cli, nil
 }
 
-func (o *StompCli) Publish(dest string, b []byte) (err error) {
+func (o *StompCli) dialPublish(dest string, b []byte) (err error) {
 	if o.Conn == nil {
 		if o.Conn, err = stomp.Dial("tcp", o.Address, o.ConnOpt...); err != nil {
 			return
 		}
 	}
-	if err = o.Conn.Send(dest, "text/plain", b); err == nil {
-		return
-	}
-	o.Release()
-	if o.Conn, err = stomp.Dial("tcp", o.Address, o.ConnOpt...); err != nil {
-		return
-	}
 	return o.Conn.Send(dest, "text/plain", b)
+}
+
+func (o *StompCli) Publish(dest string, b []byte) error {
+	if err := o.dialPublish(dest, b); err == nil {
+		return nil
+	}
+	if o.Conn != nil {
+		o.Conn.Disconnect()
+		o.Conn = nil
+	}
+	return o.dialPublish(dest, b)
+}
+
+func (o *StompCli) dialSubscribe(dest string, opts []func(*frame.Frame) error) (s *stomp.Subscription, err error) {
+	if o.Conn, err = stomp.Dial("tcp", o.Address, o.ConnOpt...); err != nil {
+		return nil, err
+	}
+	return o.Conn.Subscribe(dest, stomp.AckClient, opts...)
 }
 
 // dest使用@分割，后面为ClientID. 如topic@ClientID
@@ -66,29 +77,28 @@ func (o *StompCli) Publish(dest string, b []byte) (err error) {
 // activemq.subscriptionName:your-subscription-name
 // ack:auto
 func (o *StompCli) Subscribe(dest string, handler func([]byte) error) (err error) {
-	opts := o.ConnOpt
 	var subOpts []func(*frame.Frame) error
 	arrs := strings.Split(dest, "@")
 	if len(arrs) > 1 {
-		opts = append(opts, stomp.ConnOpt.Header("client-id", arrs[1]))
+		o.ConnOpt = append(o.ConnOpt, stomp.ConnOpt.Header("client-id", arrs[1]))
 		subOpts = append(subOpts, stomp.SubscribeOpt.Id(arrs[1]))
 		subOpts = append(subOpts, stomp.SubscribeOpt.Header("activemq.subscriptionName", arrs[1]))
 	}
-	if o.Conn, err = stomp.Dial("tcp", o.Address, opts...); err != nil {
-		return err
-	}
-	s, err := o.Conn.Subscribe(arrs[0], stomp.AckClient, subOpts...)
-	if err != nil {
-		return err
-	}
 	go func() {
-		for v := range s.C {
-			if v.Err != nil {
-				log.Println(dest, err)
-				break
+		for o.Address != "" {
+			s, err := o.dialSubscribe(arrs[0], subOpts)
+			log.Println(dest, err)
+			if err != nil {
+				time.Sleep(2 * time.Second)
+				continue
 			}
-			if err := handler(v.Body); err == nil {
-				o.Conn.Ack(v)
+			for v := range s.C {
+				if v.Err != nil {
+					break
+				}
+				if err := handler(v.Body); err == nil {
+					o.Conn.Ack(v)
+				}
 			}
 		}
 	}()
@@ -97,7 +107,7 @@ func (o *StompCli) Subscribe(dest string, handler func([]byte) error) (err error
 
 func (o *StompCli) Release() {
 	if o.Conn != nil {
+		o.Address = ""
 		o.Conn.Disconnect()
-		o.Conn = nil
 	}
 }
