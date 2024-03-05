@@ -15,33 +15,31 @@ import (
 )
 
 type Logger = lumberjack.Logger
-
-type zlog struct {
-	logger  zerolog.Logger
-	lwriter zerolog.LevelWriter
-}
+type Level = zerolog.Level
 
 var (
-	_console = zerolog.ConsoleWriter{Out: os.Stdout, TimeFormat: "2006/01/02 15:04:05"}
-	_log     zlog
+	logger  zerolog.Logger
+	lwriter zerolog.LevelWriter
 )
 
 func init() {
-	_log.lwriter = zerolog.MultiLevelWriter(_console)
-	_log.logger = zerolog.New(_log.lwriter).With().Timestamp().Logger().Level(zerolog.DebugLevel)
+	lwriter = zerolog.MultiLevelWriter(zerolog.ConsoleWriter{Out: os.Stdout, TimeFormat: "2006/01/02 15:04:05"})
+	logger = zerolog.New(lwriter).With().Timestamp().Logger().Level(zerolog.DebugLevel)
 }
 
-func WithWriter(w *Logger, l int) {
-	_log.lwriter = zerolog.MultiLevelWriter(_console, w)
-	_log.logger.Output(_log.lwriter).Level(zerolog.Level(l))
+func Output(w *Logger, level int) *zerolog.Logger {
+	// logger = zerolog.New(zerolog.MultiLevelWriter(_console, w)).With().Timestamp().Logger()
+	lwriter = zerolog.MultiLevelWriter(lwriter, w)
+	logger = logger.Output(lwriter).Level(zerolog.Level(level))
+	return &logger
 }
 
 func Writer() io.Writer {
-	return _log.lwriter
+	return lwriter
 }
 
 func Log() *zerolog.Logger {
-	return &_log.logger
+	return &logger
 }
 
 func Recovery(stack bool) gin.HandlerFunc {

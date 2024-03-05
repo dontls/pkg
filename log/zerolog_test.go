@@ -3,6 +3,7 @@ package log
 import (
 	"net/http"
 	"testing"
+	"time"
 
 	"github.com/gin-gonic/gin"
 )
@@ -11,18 +12,19 @@ func TestLogger(t *testing.T) {
 	Log().Debug().Uint16("port", 12).Msg("start at")
 	Log().Info().Uint16("port", 63).Msg("panic")
 
-	// WithWriter(&Logger{
-	// 	Filename: "log.txt",
-	// 	MaxSize:  10}, 2)
+	Output(&Logger{
+		Filename: "log.txt",
+		MaxSize:  10}, 2)
 	for {
-		Log().Debug().Msg(":----> debug message")
-		Log().Info().Msg(":----> info message")
-		Log().Error().Msg(":----> error message")
+		Log().Debug().Msg("message")
+		Log().Info().Msg("message")
+		Log().Error().Msg("message")
+		time.Sleep(1 * time.Second)
 	}
 }
 
 func TestLoggerGin(t *testing.T) {
-	WithWriter(&Logger{
+	Output(&Logger{
 		Filename: "log.txt",
 		MaxSize:  10}, 1)
 	e := gin.New()
