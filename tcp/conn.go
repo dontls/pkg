@@ -66,7 +66,6 @@ func (c *Conn) processData() {
 		if c.client == nil {
 			panic(errors.New("can't adapta protocol"))
 		}
-		c.s.addConn(c)
 	}
 	for {
 		n, err := c.client.OnHandler(c.recvBuf.Bytes())
@@ -86,7 +85,6 @@ func (c *Conn) start() {
 		e := recover()
 		fmt.Println(c.conn.RemoteAddr().String()+" closed.", e)
 		if c.client != nil {
-			c.s.deleteConn(c)
 			c.client.OnClose(fmt.Errorf("%v", e))
 		}
 	}()

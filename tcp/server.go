@@ -61,8 +61,12 @@ func (s *Server) accept() {
 		}
 		if c := s.newConn(conn); c != nil {
 			s.wg.Add(1)
+			c.s.addConn(c)
 			go func() {
-				defer s.wg.Done()
+				defer func() {
+					c.s.deleteConn(c)
+					s.wg.Done()
+				}()
 				c.start()
 			}()
 		}
