@@ -59,7 +59,7 @@ func (p *Partition) WithRange(rDays, interval int) string {
 		}
 		// note, 这里再最新分区基础上interval添加新分区
 		part, nextDay := p.schemaInfo(t1.AddDate(0, 0, interval))
-		_db.Exec("ALTER TABLE "+p.Table+"ADD PARTITION(PARTITION "+part+" VALUES LESS THAN (TO_DAYS(?)));", nextDay)
+		_db.Exec("ALTER TABLE "+p.Table+" ADD PARTITION(PARTITION "+part+" VALUES LESS THAN (TO_DAYS(?)));", nextDay)
 		parts = append(parts, schemaPart{Name: part})
 	}
 }
