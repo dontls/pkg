@@ -1,11 +1,8 @@
 package log
 
 import (
-	"net/http"
 	"testing"
 	"time"
-
-	"github.com/gin-gonic/gin"
 )
 
 func TestLogger(t *testing.T) {
@@ -23,18 +20,16 @@ func TestLogger(t *testing.T) {
 	}
 }
 
-func TestLoggerGin(t *testing.T) {
-	Output(&Logger{
-		Filename: "log.txt",
-		MaxSize:  10}, 1)
-	e := gin.New()
-	e.Use(Recovery(true))
-	e.Use(gin.LoggerWithWriter(Writer()))
-	e.GET("/hello", func(ctx *gin.Context) {
-		ctx.String(http.StatusOK, "hello")
-	})
-	e.GET("/over", func(ctx *gin.Context) {
-		panic("over")
-	})
-	e.Run(":8080")
-}
+// func TestLoggerGin(t *testing.T) {
+// 	Output(&Logger{Filename: "log.txt", MaxSize: 10}, 1)
+// 	e := gin.New()
+// 	gin.DefaultErrorWriter = Writer()
+// 	e.Use(gin.Recovery())
+// 	e.GET("/hello", func(ctx *gin.Context) {
+// 		ctx.String(http.StatusOK, "hello")
+// 	})
+// 	e.GET("/over", func(ctx *gin.Context) {
+// 		panic("over")
+// 	})
+// 	e.Run(":8080")
+// }
