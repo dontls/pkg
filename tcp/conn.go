@@ -11,15 +11,15 @@ import (
 )
 
 type Conn struct {
-	conn      net.Conn
-	localAddr string
-	ioReader  io.Reader
-	ioWriter  io.Writer
-	recvBytes []byte
-	recvBuf   bytes.Buffer
-	done      int32
-	client    IClient
-	s         *Server
+	conn       net.Conn
+	remoteAddr string
+	ioReader   io.Reader
+	ioWriter   io.Writer
+	recvBytes  []byte
+	recvBuf    bytes.Buffer
+	done       int32
+	client     IClient
+	s          *Server
 }
 
 func (c *Conn) RemoteAddr() string {
@@ -66,6 +66,7 @@ func (c *Conn) processData() {
 		if c.client == nil {
 			panic(errors.New("can't adapta protocol"))
 		}
+		fmt.Println(c.remoteAddr+" connected.", c.s.port)
 	}
 	for {
 		n, err := c.client.OnHandler(c.recvBuf.Bytes())
@@ -83,13 +84,11 @@ func (c *Conn) start() {
 	defer func() {
 		c.conn.Close()
 		e := recover()
-		fmt.Println(c.conn.RemoteAddr().String()+" closed.", e)
 		if c.client != nil {
+			fmt.Println(c.conn.RemoteAddr().String()+" closed.", e)
 			c.client.OnClose(fmt.Errorf("%v", e))
 		}
 	}()
-	fmt.Println(c.conn.RemoteAddr().String()+" connected.", c.s.port)
-	c.localAddr = c.conn.LocalAddr().Network()
 	rtm := time.Now()
 	for {
 		if atomic.LoadInt32(&c.done) > 0 {

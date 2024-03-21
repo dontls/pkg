@@ -41,13 +41,13 @@ func (s *Server) SetReadTimeout(timeout float64) {
 
 func (s *Server) addConn(c *Conn) {
 	s.lock.Lock()
-	s.mpClis[c.localAddr] = c
+	s.mpClis[c.remoteAddr] = c
 	s.lock.Unlock()
 }
 
 func (s *Server) deleteConn(c *Conn) {
 	s.lock.Lock()
-	delete(s.mpClis, c.localAddr)
+	delete(s.mpClis, c.remoteAddr)
 	s.lock.Unlock()
 }
 
@@ -60,14 +60,12 @@ func (s *Server) accept() {
 			break
 		}
 		if c := s.newConn(conn); c != nil {
-			s.wg.Add(1)
 			c.s.addConn(c)
+			s.wg.Add(1)
 			go func() {
-				defer func() {
-					c.s.deleteConn(c)
-					s.wg.Done()
-				}()
 				c.start()
+				c.s.deleteConn(c)
+				s.wg.Done()
 			}()
 		}
 	}
@@ -75,11 +73,12 @@ func (s *Server) accept() {
 
 func (s *Server) newConn(c net.Conn) *Conn {
 	return &Conn{
-		conn:      c,
-		ioReader:  io.Reader(c),
-		ioWriter:  io.Writer(c),
-		recvBytes: make([]byte, 2048),
-		s:         s,
+		conn:       c,
+		ioReader:   io.Reader(c),
+		ioWriter:   io.Writer(c),
+		recvBytes:  make([]byte, 2048),
+		s:          s,
+		remoteAddr: c.RemoteAddr().String(),
 	}
 }
 
@@ -96,9 +95,11 @@ func (s *Server) Shutdown() error {
 	if s.listener != nil {
 		s.listener.Close()
 	}
+	s.lock.RLock()
 	for _, c := range s.mpClis {
 		c.Close()
 	}
+	s.lock.RLock()
 	s.wg.Wait()
 	return nil
 }
