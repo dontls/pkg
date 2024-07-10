@@ -77,7 +77,8 @@ func (o *DB) Find(dest interface{}, query string, args ...interface{}) error {
 	}
 	defer rows.Close()
 	t := reflect.New(value.Type().Elem())
-	fields := SqlValuesAddr(t.Interface())
+	cols, _ := rows.Columns()
+	fields := SqlValuesAddr(t.Interface())[:len(cols)]
 	for rows.Next() {
 		if err := rows.Scan(fields...); err != nil {
 			continue
