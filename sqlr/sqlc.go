@@ -34,13 +34,18 @@ func (o *sqlc) Equal(query string, v interface{}) *sqlc {
 	return o
 }
 
-func (o *sqlc) In(query string, v interface{}) *sqlc {
-	switch v := v.(type) {
-	case string:
-		if v != "" {
-			s := (query + " IN(" + v + ")")
-			o.wheres = append(o.wheres, s)
-		}
+func (o *sqlc) In(query, val string) *sqlc {
+	if val != "" {
+		s := (query + " IN(" + val + ")")
+		o.wheres = append(o.wheres, s)
+	}
+	return o
+}
+
+func (o *sqlc) InStrings(query, val string) *sqlc {
+	if val != "" {
+		s := (query + " IN('" + strings.ReplaceAll(val, ",", "','") + "')")
+		o.wheres = append(o.wheres, s)
 	}
 	return o
 }
