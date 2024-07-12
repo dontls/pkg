@@ -9,7 +9,6 @@ import (
 	"gorm.io/gorm"
 )
 
-// "root:Howenforever@tcp(172.16.60.219:35200)/jtdata?charset=utf8&parseTime=True&loc=Local"
 // 去掉时区，使用钩子函数更新时间
 const timeformat = "2006-01-02 15:04:05"
 
