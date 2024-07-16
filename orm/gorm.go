@@ -2,8 +2,11 @@ package orm
 
 import (
 	"reflect"
+	"time"
 
 	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
+	"gorm.io/gorm/schema"
 )
 
 var _db *gorm.DB
@@ -142,4 +145,60 @@ func DbFindPage(query string, obj interface{}, page, size int) (int64, error) {
 		db = db.Offset((page - 1) * size).Limit(size)
 	}
 	return total, db.Scan(obj).Error
+}
+
+var _models []interface{}
+
+func RegisterModel(dst ...interface{}) {
+	_models = append(_models, dst...)
+}
+
+var _engineModels = make(map[string][]interface{})
+
+func RegisterEngineModel(engine string, dst ...interface{}) {
+	v := _engineModels[engine]
+	v = append(v, dst...)
+	_engineModels[engine] = v
+}
+
+var gconf = gorm.Config{
+	NamingStrategy: schema.NamingStrategy{
+		SingularTable: true,
+		NoLowerCase:   true,
+	},
+	DisableForeignKeyConstraintWhenMigrating: true, // 禁用外键约束
+}
+
+// 在NewDB之前调用
+func SetLogger(w logger.Writer) {
+	gconf.Logger = logger.New(w, logger.Config{
+		SlowThreshold:             time.Second, // Slow SQL threshold
+		LogLevel:                  logger.Info, // Log level
+		IgnoreRecordNotFoundError: true,        // Ignore ErrRecordNotFound error for logger
+		Colorful:                  false,       // Disable color
+	})
+}
+
+func CreateDB(dialector gorm.Dialector, debug bool) (err error) {
+	_db, err = gorm.Open(dialector, &gconf)
+	if err != nil {
+		return err
+	}
+	sqldb, err := _db.DB()
+	if err != nil {
+		return err
+	}
+	if debug {
+		_db = _db.Debug()
+	}
+	// SetMaxIdleCons 设置连接池中的最大闲置连接数。
+	sqldb.SetMaxIdleConns(10)
+	// SetMaxOpenCons 设置数据库的最大连接数量。
+	sqldb.SetMaxOpenConns(100)
+	// auto migrate
+	_db.AutoMigrate(_models...)
+	for k, v := range _engineModels {
+		_db.Set("gorm:table_options", "ENGINE="+k).AutoMigrate(v...)
+	}
+	return nil
 }

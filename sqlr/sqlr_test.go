@@ -50,7 +50,7 @@ func TestDB(t *testing.T) {
 	if err != nil {
 		log.Fatalln(err)
 	}
-	myDB := &DB{db: db}
+	myDB := &DB{Db: db}
 	_, err = myDB.Insert(&p, "test")
 	if err != nil {
 		log.Fatal(err)
@@ -62,7 +62,7 @@ func TestSqlc(t *testing.T) {
 	if err != nil {
 		log.Fatalln(err)
 	}
-	myDB := &DB{db: db}
+	myDB := &DB{Db: db}
 	var total int
 	sqlc := NewSQL("SELECT count(1) FROM test").Equal("Name", "").Equal("Age", 16)
 	if err := myDB.Count(&total, sqlc.String()); err != nil {
