@@ -1,4 +1,4 @@
-package ctx
+package ginx
 
 import (
 	"context"
@@ -72,7 +72,7 @@ func Release() error {
 		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
 		s.Shutdown(ctx)
-		// catching ctx.Done(). timeout of 5 seconds.
+		// catching ginx.Done(). timeout of 5 seconds.
 		<-ctx.Done()
 	}
 	return nil
