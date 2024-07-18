@@ -46,7 +46,11 @@ func (c *Context) SetCode(code int) *Context {
 }
 
 // Write 输出json到客户端, 无data字段
-func (c *Context) Write(h gin.H) {
+func (c *Context) Write(h gin.H, errs ...error) {
+	if len(errs) > 0 && errs[0] != nil {
+		c.WriteData(nil, errs...)
+		return
+	}
 	h["code"] = c.Code
 	h["message"] = c.Msg
 	c.JSON(http.StatusOK, h)
