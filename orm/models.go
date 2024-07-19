@@ -10,32 +10,31 @@ import (
 )
 
 // 去掉时区，使用钩子函数更新时间
-const timeformat = "2006-01-02 15:04:05"
+const TimeFormat = "2006-01-02 15:04:05"
 
 // Time format json time field by myself
-type Time struct {
-	time.Time
-}
+type Time time.Time
 
 // MarshalJSON on JSONTime format Time field with %Y-%m-%d %H:%M:%S
 func (t Time) MarshalJSON() ([]byte, error) {
-	formatted := fmt.Sprintf("\"%s\"", t.Format(timeformat))
+	formatted := fmt.Sprintf("\"%s\"", time.Time(t).Format(TimeFormat))
 	return []byte(formatted), nil
 }
 
 // Value insert timestamp into mysql need this function.
 func (t Time) Value() (driver.Value, error) {
 	var zeroTime time.Time
-	if t.Time.UnixNano() == zeroTime.UnixNano() {
+	lt := time.Time(t)
+	if lt.UnixNano() == zeroTime.UnixNano() {
 		return nil, nil
 	}
-	return t.Time, nil
+	return lt, nil
 }
 
 type ModelTime struct {
-	CreatedAt Time  `json:"createdAt"`
-	UpdatedAt Time  `json:"updatedAt"`
-	DeletedAt *Time `json:"deletedAt" sql:"index"`
+	CreatedAt Time           `json:"createdAt"`
+	UpdatedAt Time           `json:"updatedAt"`
+	DeletedAt gorm.DeletedAt `json:"deletedAt" sql:"index"`
 }
 
 type ModelAuth struct {
@@ -44,13 +43,12 @@ type ModelAuth struct {
 }
 
 // 去掉parseTime&loc=Local
-// jtime format json time field by myself
 type CreatedAt struct {
 	CreatedAt string `json:"createdAt" gorm:"type:datetime;"`
 }
 
 func (CreatedAt) BeforeCreate(tx *gorm.DB) error {
-	tx.Statement.SetColumn("CreatedAt", time.Now().Format(timeformat))
+	tx.Statement.SetColumn("CreatedAt", time.Now().Format(TimeFormat))
 	return nil
 }
 
@@ -59,7 +57,7 @@ type UpdatedAt struct {
 }
 
 func (UpdatedAt) BeforeUpdate(tx *gorm.DB) error {
-	tx.Statement.SetColumn("UpdatedAt", time.Now().Format(timeformat))
+	tx.Statement.SetColumn("UpdatedAt", time.Now().Format(TimeFormat))
 	return nil
 }
 
