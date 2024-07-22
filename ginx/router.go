@@ -17,21 +17,16 @@ type router struct {
 }
 
 var (
-	routers    []router
-	jwtRouters []router
-	apiRouters []router
+	routers     []router
+	authRouters []router
 )
 
 func Register(root string, h HandleFunc) {
 	routers = append(routers, router{key: root, handler: h})
 }
 
-func RegisterJWT(root string, h HandleFunc) {
-	jwtRouters = append(jwtRouters, router{key: root, handler: h})
-}
-
-func RegisterAPI(root string, h HandleFunc) {
-	apiRouters = append(apiRouters, router{key: root, handler: h})
+func RegisterAuth(root string, h HandleFunc) {
+	authRouters = append(authRouters, router{key: root, handler: h})
 }
 
 // 顺序，1->普通url， 2->jwtUrl, 3->tokenUrl
@@ -42,12 +37,12 @@ func Use(r ...*gin.RouterGroup) {
 		}
 	}
 	if len(r) > 1 {
-		for _, v := range jwtRouters {
+		for _, v := range authRouters {
 			v.handler(r[1].Group(v.key))
 		}
 	}
 	if len(r) > 2 {
-		for _, v := range apiRouters {
+		for _, v := range authRouters {
 			v.handler(r[2].Group(v.key))
 		}
 	}
