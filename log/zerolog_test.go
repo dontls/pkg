@@ -6,16 +6,16 @@ import (
 )
 
 func TestLogger(t *testing.T) {
-	Log().Debug().Uint16("port", 12).Msg("start at")
-	Log().Info().Uint16("port", 63).Msg("panic")
+	Debug().Uint16("port", 12).Msg("start at")
+	Info().Uint16("port", 63).Msg("panic")
 
 	Output(&Logger{
 		Filename: "log.txt",
 		MaxSize:  10}, 2)
 	for {
-		Log().Debug().Msg("message")
-		Log().Info().Msg("message")
-		Log().Error().Msg("message")
+		Debug().Msg("message")
+		Info().Msg("message")
+		Error().Msg("message")
 		time.Sleep(1 * time.Second)
 	}
 }
