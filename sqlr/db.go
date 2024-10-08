@@ -60,12 +60,12 @@ func (o *DB) Find(dest interface{}, query string, args ...interface{}) error {
 	if o.Db == nil {
 		return errDbOpened
 	}
-	value := _reflectValue(dest)
 	rows, err := o.Db.Query(query, args...)
 	if err != nil {
 		return err
 	}
 	defer rows.Close()
+	value := _reflectValue(dest)
 	t := reflect.New(value.Type().Elem())
 	cols, _ := rows.Columns()
 	fields := SqlValuesAddr(t.Interface())[:len(cols)]

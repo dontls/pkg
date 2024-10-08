@@ -34,17 +34,17 @@ func (o *sqlc) Equal(query string, v interface{}) *sqlc {
 	return o
 }
 
-func (o *sqlc) In(query, val string) *sqlc {
-	if val != "" {
-		s := (query + " IN(" + val + ")")
+func (o *sqlc) In(query, s string) *sqlc {
+	if s != "" {
+		s := (query + " IN(" + s + ")")
 		o.wheres = append(o.wheres, s)
 	}
 	return o
 }
 
-func (o *sqlc) InStrings(query, val string) *sqlc {
-	if val != "" {
-		s := (query + " IN('" + strings.ReplaceAll(val, ",", "','") + "')")
+func (o *sqlc) InStrings(query, s string) *sqlc {
+	if s != "" {
+		s := (query + " IN('" + strings.ReplaceAll(s, ",", "','") + "')")
 		o.wheres = append(o.wheres, s)
 	}
 	return o
@@ -75,12 +75,16 @@ func (o *sqlc) GroupBy(query string) *sqlc {
 	return o
 }
 
-func (o *sqlc) String() string {
+func (o *sqlc) Select(s string) string {
 	if len(o.wheres) > 0 {
-		o.sqls += (" WHERE " + strings.Join(o.wheres, " AND "))
+		s += (" WHERE " + strings.Join(o.wheres, " AND "))
 	}
 	if len(o.others) > 0 {
-		o.sqls += (" " + strings.Join(o.others, " "))
+		s += (" " + strings.Join(o.others, " "))
 	}
-	return o.sqls
+	return s
+}
+
+func (o *sqlc) String() string {
+	return o.Select(o.sqls)
 }
