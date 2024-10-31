@@ -4,8 +4,8 @@ import "database/sql"
 
 var _db = &DB{}
 
-func Default() *DB {
-	return _db
+func SetDefault(db *sql.DB) {
+	_db.Db = db
 }
 
 func Exec(query string, args ...interface{}) (sql.Result, error) {
