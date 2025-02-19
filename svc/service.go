@@ -3,10 +3,6 @@ package svc
 import (
 	"log"
 	"os"
-	"path/filepath"
-	"runtime"
-	"time"
-	"unsafe"
 
 	"github.com/kardianos/service"
 )
@@ -26,20 +22,18 @@ func (p *Program) Stop(s service.Service) error {
 	return p.Shutdown()
 }
 
-func Run(p *Program) {
-	defer func() {
-		if err := recover(); err != nil {
-			const size = 64 << 10
-			buf := make([]byte, size)
-			buf = buf[:runtime.Stack(buf, false)]
-			dumpfile := filepath.Dir(os.Args[0]) + "/" + time.Now().Format("20060102150405") + ".dump"
-			if logFile, err := os.OpenFile(dumpfile, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0766); err == nil {
-				log.SetOutput(logFile) // 将文件设置为log输出的文件
-				log.SetFlags(log.LstdFlags | log.Lshortfile | log.LUTC)
-			}
-			log.Fatalf("runtime error: %v\ntraceback:\n%v\n", err, *(*string)(unsafe.Pointer(&buf)))
+func ErrorOutput(filename string) {
+	// go1.23 debug.SetCrashOutput(f, debug.CrashOptions{})
+	if file, err := os.OpenFile(filename, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666); err == nil {
+		//50K文件
+		if fi, err := file.Stat(); err == nil && fi.Size() > 51200 {
+			file.Truncate(0)
 		}
-	}()
+		crashDup(file)
+	}
+}
+
+func Run(p *Program) {
 	app := p.AppName()
 	s, err := service.New(p, &service.Config{
 		Name:        app,
