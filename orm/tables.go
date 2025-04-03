@@ -32,7 +32,7 @@ type XTablers interface {
 }
 
 // 请自行定
-func CreateTables(v interface{}) {
+func CreateTables(v any) {
 	s, ok := v.(XTablers)
 	if !ok {
 		panic(fmt.Errorf("%v TypeOf not XTablers", reflect.TypeOf(v)))

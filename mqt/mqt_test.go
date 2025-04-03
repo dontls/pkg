@@ -11,7 +11,7 @@ var index = 0
 
 func getPushData() []byte {
 	index++
-	v := map[string]interface{}{
+	v := map[string]any{
 		"device": "20198002",
 		"now":    time.Now().Format("2006-01-02 15:04:05"),
 		"index":  index,

@@ -12,21 +12,21 @@ type DB struct {
 	Db *sql.DB
 }
 
-func (o *DB) Exec(query string, args ...interface{}) (sql.Result, error) {
+func (o *DB) Exec(query string, args ...any) (sql.Result, error) {
 	if o.Db == nil {
 		return nil, errDbOpened
 	}
 	return o.Db.Exec(query, args...)
 }
 
-func (o *DB) Query(query string, args ...interface{}) (*sql.Rows, error) {
+func (o *DB) Query(query string, args ...any) (*sql.Rows, error) {
 	if o.Db == nil {
 		return nil, errDbOpened
 	}
 	return o.Db.Query(query, args...)
 }
 
-func (o *DB) Count(dest interface{}, query string, args ...interface{}) error {
+func (o *DB) Count(dest any, query string, args ...any) error {
 	if o.Db == nil {
 		return errDbOpened
 	}
@@ -40,7 +40,7 @@ func (o *DB) Count(dest interface{}, query string, args ...interface{}) error {
 	return nil
 }
 
-func (o *DB) Get(dest interface{}, query string, args ...interface{}) error {
+func (o *DB) Get(dest any, query string, args ...any) error {
 	if o.Db == nil {
 		return errDbOpened
 	}
@@ -56,7 +56,7 @@ func (o *DB) Get(dest interface{}, query string, args ...interface{}) error {
 	return nil
 }
 
-func (o *DB) Find(dest interface{}, query string, args ...interface{}) error {
+func (o *DB) Find(dest any, query string, args ...any) error {
 	if o.Db == nil {
 		return errDbOpened
 	}
@@ -79,7 +79,7 @@ func (o *DB) Find(dest interface{}, query string, args ...interface{}) error {
 	return nil
 }
 
-func (o *DB) Insert(v interface{}, table string) (sql.Result, error) {
+func (o *DB) Insert(v any, table string) (sql.Result, error) {
 	if o.Db == nil {
 		return nil, errDbOpened
 	}

@@ -29,7 +29,7 @@ func (o *Builder) findChildren(i int, h2 func(int, int) bool) {
 }
 
 // h1 判断主节点， h2判断子节点
-func (o *Builder) Do(obj interface{}, h1 func(int) bool, h2 func(int, int) bool) interface{} {
+func (o *Builder) Do(obj any, h1 func(int) bool, h2 func(int, int) bool) any {
 	if reflect.TypeOf(obj).Kind() != reflect.Slice {
 		return nil
 	}
@@ -38,7 +38,7 @@ func (o *Builder) Do(obj interface{}, h1 func(int) bool, h2 func(int, int) bool)
 		return nil
 	}
 	o.len = o.elem.Len()
-	var r []interface{}
+	var r []any
 	for i := 0; i < o.len; i++ {
 		if !h1(i) {
 			continue
@@ -50,7 +50,7 @@ func (o *Builder) Do(obj interface{}, h1 func(int) bool, h2 func(int, int) bool)
 }
 
 // h1 判断主节点， h2判断子节点
-func Slice(obj interface{}, h1 func(int) bool, h2 func(int, int) bool) interface{} {
+func Slice(obj any, h1 func(int) bool, h2 func(int, int) bool) any {
 	o := Builder{ChildName: "Children"}
 	return o.Do(obj, h1, h2)
 }

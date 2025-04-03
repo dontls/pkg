@@ -67,7 +67,7 @@ func (p StringArray) Value() (driver.Value, error) {
 	return json.Marshal(p)
 }
 
-func (p *StringArray) Scan(data interface{}) error {
+func (p *StringArray) Scan(data any) error {
 	return json.Unmarshal(data.([]byte), &p)
 }
 
@@ -79,6 +79,6 @@ func (j UintArray) Value() (driver.Value, error) {
 }
 
 // Scan valueof
-func (t *UintArray) Scan(v interface{}) error {
+func (t *UintArray) Scan(v any) error {
 	return json.Unmarshal(v.([]byte), t)
 }

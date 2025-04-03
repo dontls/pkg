@@ -31,7 +31,7 @@ func (o *Partition) schemaInfo(t time.Time) (string, string) {
 	return name, lessDay
 }
 
-func (p *Partition) queryTabelPart(data interface{}) error {
+func (p *Partition) queryTabelPart(data any) error {
 	return _db.Raw("SELECT PARTITION_NAME, PARTITION_DESCRIPTION, PARTITION_EXPRESSION "+
 		"FROM information_schema.PARTITIONS WHERE table_name = ? ORDER BY PARTITION_NAME ASC;", p.Table).Scan(data).Error
 }

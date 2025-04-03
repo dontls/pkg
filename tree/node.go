@@ -17,7 +17,7 @@ func (o *Node) hasParent(data []Node) bool {
 	return false
 }
 
-func Build(v []Node) interface{} {
+func Build(v []Node) any {
 	return Slice(v, func(i int) bool { return v[i].hasParent(v) }, func(i1, i2 int) bool {
 		return v[i1].ID == v[i2].ParentID
 	})

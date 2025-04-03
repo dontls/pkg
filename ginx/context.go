@@ -13,14 +13,14 @@ var (
 	StatusLoginExpired = 401  // 登录过期
 	StatusForbidden    = 403  // 无权限
 	StatusError        = 500  // 错误
-	StatusParamErr     = 4000 // 参数错误
-	StatusDBErr        = 4001 // 数据操作
+	StatusParamErr     = 5000 // 参数错误
+	StatusDBErr        = 5001 // 数据操作
 )
 
 type rData struct {
-	Code int         `json:"code"`
-	Msg  string      `json:"message"`
-	Data interface{} `json:"data,omitempty"`
+	Code int    `json:"code"`
+	Msg  string `json:"message"`
+	Data any    `json:"data,omitempty"`
 }
 
 // Context 响应
@@ -57,7 +57,7 @@ func (c *Context) Write(h gin.H, errs ...error) {
 }
 
 // WriteData 输出json到客户端， 有data字段
-func (c *Context) WriteData(data interface{}, errs ...error) {
+func (c *Context) WriteData(data any, errs ...error) {
 	if len(errs) > 0 && errs[0] != nil {
 		c.Code = StatusError
 		c.Msg = errs[0].Error()
@@ -83,11 +83,11 @@ func (c *Context) WriteParamError(err error) {
 }
 
 // WriteData 输出json到客户端， 有data字段
-func (c *Context) WriteTotal(n int64, data interface{}) {
+func (c *Context) WriteTotal(n int64, data any) {
 	c.Write(gin.H{"total": n, "data": data})
 }
 
-func MustBind(c *gin.Context, v interface{}) (*Context, error) {
+func MustBind(c *gin.Context, v any) (*Context, error) {
 	ctx := JSON(c)
 	err := ctx.ShouldBind(v)
 	if err != nil {

@@ -8,26 +8,26 @@ func SetDefault(db *sql.DB) {
 	_db.Db = db
 }
 
-func Exec(query string, args ...interface{}) (sql.Result, error) {
+func Exec(query string, args ...any) (sql.Result, error) {
 	return _db.Exec(query, args...)
 }
 
-func Query(query string, args ...interface{}) (*sql.Rows, error) {
+func Query(query string, args ...any) (*sql.Rows, error) {
 	return _db.Query(query, args...)
 }
 
-func Count(dest interface{}, query string, args ...interface{}) error {
+func Count(dest any, query string, args ...any) error {
 	return _db.Count(dest, query, args...)
 }
 
-func Get(dest interface{}, query string, args ...interface{}) error {
+func Get(dest any, query string, args ...any) error {
 	return _db.Get(dest, query, args...)
 }
 
-func Find(dest interface{}, query string, args ...interface{}) error {
+func Find(dest any, query string, args ...any) error {
 	return _db.Find(dest, query, args...)
 }
 
-func Insert(v interface{}, table string) (sql.Result, error) {
+func Insert(v any, table string) (sql.Result, error) {
 	return _db.Insert(v, table)
 }

@@ -116,7 +116,7 @@ func (o XUser) TableName() string {
 	return fmt.Sprintf("t_xuser_%0*d", l, o.DeptID%gUserTabs)
 }
 
-func (XUser) Object(id uint) (interface{}, string) {
+func (XUser) Object(id uint) (any, string) {
 	v := &XUser{DeptID: id}
 	return v, v.TableName()
 }

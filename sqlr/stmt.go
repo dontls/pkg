@@ -7,7 +7,7 @@ import (
 	"strings"
 )
 
-func _reflectValue(v interface{}) reflect.Value {
+func _reflectValue(v any) reflect.Value {
 	value := reflect.ValueOf(v)
 	// json.Unmarshal returns errors for these
 	if value.Kind() == reflect.Ptr {
@@ -17,7 +17,7 @@ func _reflectValue(v interface{}) reflect.Value {
 }
 
 // 反射生成slice的基本类型对象
-func BaseModel(dest interface{}) interface{} {
+func BaseModel(dest any) any {
 	value := _reflectValue(dest)
 	if value.Type().Kind() == reflect.Slice {
 		return reflect.New(value.Type().Elem()).Interface()
@@ -58,7 +58,7 @@ func fieldsFmt(v reflect.Value) (s string, ns []string) {
 	return
 }
 
-func fieldVal(v reflect.Value) interface{} {
+func fieldVal(v reflect.Value) any {
 	t := v.Kind()
 	switch {
 	case t > reflect.Invalid && t < reflect.Uint:
@@ -74,7 +74,7 @@ func fieldVal(v reflect.Value) interface{} {
 	}
 }
 
-func fieldAddr(v reflect.Value) (r []interface{}) {
+func fieldAddr(v reflect.Value) (r []any) {
 	//如果传入指针则拿到指针指向的值
 	if v.Kind() == reflect.Ptr {
 		v = v.Elem()
@@ -92,7 +92,7 @@ func fieldAddr(v reflect.Value) (r []interface{}) {
 }
 
 // 获取结构体实例字段的地址
-func SqlValuesAddr(s interface{}) []interface{} {
+func SqlValuesAddr(s any) []any {
 	value := _reflectValue(s)
 	//参数必须是结构体
 	if value.Kind() != reflect.Struct {
@@ -101,7 +101,7 @@ func SqlValuesAddr(s interface{}) []interface{} {
 	return fieldAddr(value)
 }
 
-func SqlValueFmt(v interface{}) string {
+func SqlValueFmt(v any) string {
 	s, _ := fieldsFmt(_reflectValue(v))
 	if s != "" {
 		s = strings.TrimRight(s, ",")
@@ -110,7 +110,7 @@ func SqlValueFmt(v interface{}) string {
 	return s
 }
 
-func SqlValueNames(v interface{}) string {
+func SqlValueNames(v any) string {
 	_, ns := fieldsFmt(_reflectValue(v))
 	if len(ns) > 1 {
 		s := strings.Join(ns, ", ")
@@ -119,7 +119,7 @@ func SqlValueNames(v interface{}) string {
 	return ""
 }
 
-func _sqlValue(v reflect.Value) (r []interface{}) {
+func _sqlValue(v reflect.Value) (r []any) {
 	n := v.NumField()
 	for i := 0; i < n; i++ {
 		fd := v.Field(i)
@@ -139,7 +139,7 @@ func _sqlValue(v reflect.Value) (r []interface{}) {
 	return
 }
 
-func SqlValues(v interface{}, handle func(int) string) string {
+func SqlValues(v any, handle func(int) string) string {
 	value := _reflectValue(v)
 	sqls := ""
 	switch value.Type().Kind() {

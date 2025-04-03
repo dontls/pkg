@@ -60,7 +60,7 @@ type ITitles interface {
 	SheetTitles() []string
 }
 
-func Sheet(sheet string, v interface{}) *excel {
+func Sheet(sheet string, v any) *excel {
 	r := &excel{}
 	r.filename = fmt.Sprintf("%s_%s.xlsx", sheet, time.Now().Format("2006-01-02 150405"))
 	r.file = xlsx.NewFile()
@@ -87,7 +87,7 @@ func structTitles(typOf reflect.Type) []string {
 	return titles
 }
 
-func scanTitles(v interface{}) (reflect.Value, []string) {
+func scanTitles(v any) (reflect.Value, []string) {
 	value := reflect.ValueOf(v)
 	if value.Kind() == reflect.Ptr {
 		value = value.Elem()

@@ -12,19 +12,19 @@ import (
 var _db *gorm.DB
 
 // H 多列处理
-type H map[string]interface{}
+type H map[string]any
 
 // gorm对象
 func DB() *gorm.DB {
 	return _db
 }
 
-func DbModel(v interface{}) *gorm.DB {
+func DbModel(v any) *gorm.DB {
 	return _db.Model(v)
 }
 
 // DbCount 数目
-func DbCount(model, where interface{}) int64 {
+func DbCount(model, where any) int64 {
 	var count int64
 	db := _db.Model(model)
 	if where != nil {
@@ -35,56 +35,56 @@ func DbCount(model, where interface{}) int64 {
 }
 
 // DbCreate 创建
-func DbCreate(model interface{}) error {
+func DbCreate(model any) error {
 	return _db.Create(model).Error
 }
 
 // DbSave 保存
-func DbSave(value interface{}) error {
+func DbSave(value any) error {
 	return _db.Save(value).Error
 }
 
 // DbUpdateModel 更新
 // 默认匹配primary_key
-func DbUpdateModel(model interface{}) error {
+func DbUpdateModel(model any) error {
 	return _db.Model(model).Updates(model).Error
 }
 
 // DbUpdateFields 更新指定列，
 // 默认匹配primary_key
-func DbUpdateFields(model interface{}, fields ...string) error {
+func DbUpdateFields(model any, fields ...string) error {
 	return _db.Model(model).Select(fields).Updates(model).Error
 }
 
 // DbUpdateModelBy 条件更新
-func DbUpdateModelBy(model interface{}, where string, args ...interface{}) error {
+func DbUpdateModelBy(model any, where string, args ...any) error {
 	return _db.Where(where, args...).Updates(model).Error
 }
 
 // DbUpdateModelByID 更新
-func DbUpdateModelByID(model, id interface{}) error {
+func DbUpdateModelByID(model, id any) error {
 	return _db.Where("ID = ?", id).Updates(model).Error
 }
 
 // DbUpdateByID 更新
 // 如果id是数组，则批量更新
-func DbUpdateByID(model interface{}, ids interface{}, value map[string]interface{}) error {
+func DbUpdateByID(model any, ids any, value map[string]any) error {
 	return _db.Model(model).Where("ID in (?)", ids).Updates(value).Error
 }
 
 // DbDeletes 批量删除
-func DbDeletes(value interface{}) error {
+func DbDeletes(value any) error {
 	return _db.Delete(value).Error
 }
 
 // DbDeleteByIds 批量删除
 // ids id数组 []
-func DbDeleteByIDs(model, ids interface{}) error {
+func DbDeleteByIDs(model, ids any) error {
 	return _db.Delete(model, ids).Error
 }
 
 // DbDeleteBy 删除
-func DbDeleteBy(model interface{}, where string, args ...interface{}) (count int64, err error) {
+func DbDeleteBy(model any, where string, args ...any) (count int64, err error) {
 	db := _db.Where(where, args...).Delete(model)
 	err = db.Error
 	if err != nil {
@@ -95,23 +95,23 @@ func DbDeleteBy(model interface{}, where string, args ...interface{}) (count int
 }
 
 // DbFirstBy 指定条件查找
-func DbFirstBy(out interface{}, where string, args ...interface{}) (err error) {
+func DbFirstBy(out any, where string, args ...any) (err error) {
 	err = _db.Where(where, args...).First(out).Error
 	return
 }
 
 // DbFirstByID 查找
-func DbFirstByID(out interface{}, id uint) error {
+func DbFirstByID(out any, id uint) error {
 	return _db.First(out, id).Error
 }
 
 // DbFirstWhere 查找
-func DbFirstWhere(out, where interface{}) error {
+func DbFirstWhere(out, where any) error {
 	return _db.Where(where).First(out).Error
 }
 
 // DbFind 多个查找
-func DbFind(out interface{}, orders ...string) error {
+func DbFind(out any, orders ...string) error {
 	db := _db
 	if len(orders) > 0 {
 		for _, order := range orders {
@@ -122,13 +122,13 @@ func DbFind(out interface{}, orders ...string) error {
 }
 
 // DbFindBy 多个条件查找
-func DbFindBy(out interface{}, where string, args ...interface{}) (int64, error) {
+func DbFindBy(out any, where string, args ...any) (int64, error) {
 	db := _db.Where(where, args...).Find(out)
 	return db.RowsAffected, db.Error
 }
 
 // DbFindPageRaw obj必须是数组类型
-func DbFindPage(query string, obj interface{}, page, size int) (int64, error) {
+func DbFindPage(query string, obj any, page, size int) (int64, error) {
 	s := reflect.ValueOf(obj)
 	if s.Kind() == reflect.Ptr {
 		s = s.Elem()
@@ -147,15 +147,15 @@ func DbFindPage(query string, obj interface{}, page, size int) (int64, error) {
 	return total, db.Scan(obj).Error
 }
 
-var _models []interface{}
+var _models []any
 
-func RegisterModel(dst ...interface{}) {
+func RegisterModel(dst ...any) {
 	_models = append(_models, dst...)
 }
 
-var _engineModels = make(map[string][]interface{})
+var _engineModels = make(map[string][]any)
 
-func RegisterEngineModel(engine string, dst ...interface{}) {
+func RegisterEngineModel(engine string, dst ...any) {
 	v := _engineModels[engine]
 	v = append(v, dst...)
 	_engineModels[engine] = v
