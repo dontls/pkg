@@ -17,7 +17,7 @@ func (rg *RouterGroup) Register(relativePath string, r RouterFunc) {
 }
 
 func (rg *RouterGroup) hookHandler(ctx *gin.Context, handler HandlerFunc) {
-	handler(&Context{Context: ctx})
+	handler(JSON(ctx))
 }
 
 func (rg *RouterGroup) POST(relativePath string, handler HandlerFunc) {
