@@ -14,13 +14,21 @@ var (
 	StatusForbidden    = 403  // 无权限
 	StatusError        = 500  // 错误
 	StatusParamErr     = 5000 // 参数错误
-	StatusDBErr        = 5001 // 数据操作
 )
+
+type H gin.H
 
 type rData struct {
 	Code int    `json:"code"`
 	Msg  string `json:"message"`
 	Data any    `json:"data,omitempty"`
+}
+
+// UserClaims 用户Claims
+type UserClaims struct {
+	UserID   uint   `json:"userId"`
+	RoleID   uint   `json:"roleId"`
+	UserName string `json:"username"`
 }
 
 // Context 响应
@@ -45,89 +53,93 @@ func (c *Context) SetCode(code int) *Context {
 	return c
 }
 
-// Write 输出json到客户端, 无data字段
-func (c *Context) Write(h gin.H, errs ...error) {
-	if len(errs) > 0 && errs[0] != nil {
-		c.WriteData(nil, errs...)
-		return
-	}
-	h["code"] = c.Code
-	h["message"] = c.Msg
-	c.JSON(http.StatusOK, h)
-}
-
-// WriteData 输出json到客户端， 有data字段
-func (c *Context) WriteData(data any, errs ...error) {
-	if len(errs) > 0 && errs[0] != nil {
-		c.Code = StatusError
-		c.Msg = errs[0].Error()
-	} else {
-		c.rData.Data = data
-	}
-	c.JSON(http.StatusOK, c.rData)
-}
-
 // WriteError db 错误应答
-func (c *Context) WriteError(err error) {
+func (c *Context) JSONWriteError(err error) {
 	if err != nil {
-		c.Code = StatusDBErr
+		c.Code = StatusError
 		c.Msg = err.Error()
 	}
 	c.JSON(http.StatusOK, c.rData)
 }
 
-func (c *Context) WriteParamError(err error) {
+// WriteData 输出json到客户端， 有data字段
+func (c *Context) JSONWriteData(data any, errs ...error) {
+	if len(errs) == 0 {
+		c.rData.Data = data
+		c.JSON(http.StatusOK, c.rData)
+		return
+	}
+	c.JSONWriteError(errs[0])
+}
+
+// Write 输出json到客户端, 无data字段
+func (c *Context) JSONWrite(h H, errs ...error) {
+	if len(errs) == 0 {
+		h["code"] = c.Code
+		h["message"] = c.Msg
+		c.JSON(http.StatusOK, h)
+		return
+	}
+	c.JSONWriteError(errs[0])
+}
+
+func (c *Context) JSONWriteParamError(err error) {
 	c.Code = StatusParamErr
 	c.Msg = err.Error()
 	c.JSON(http.StatusOK, c.rData)
 }
 
 // WriteData 输出json到客户端， 有data字段
-func (c *Context) WriteTotal(n int64, data any) {
-	c.Write(gin.H{"total": n, "data": data})
+func (c *Context) JSONWriteTotal(n int64, data any) {
+	c.JSONWrite(H{"total": n, "data": data})
 }
 
-func MustBind(c *gin.Context, v any) (*Context, error) {
-	ctx := JSON(c)
-	err := ctx.ShouldBind(v)
+func (c *Context) MustBind(v any) error {
+	err := c.ShouldBind(v)
 	if err != nil {
-		ctx.WriteParamError(err)
+		c.JSONWriteParamError(err)
 	}
-	return ctx, err
+	return err
 }
 
 // ParamUInt uint参数
-func MustParam(c *gin.Context, key string) (*Context, string) {
-	ctx := JSON(c)
-	idstr := ctx.Param(key)
+func (c *Context) MustParam(key string) string {
+	idstr := c.Param(key)
 	if idstr == "" {
-		ctx.WriteParamError(fmt.Errorf("%s empty", key))
+		c.JSONWriteParamError(fmt.Errorf("%s empty", key))
 	}
-	return ctx, idstr
+	return idstr
 }
 
 // ParamUInt uint参数
-func (c *Context) ParamUInt(key string) (*Context, uint) {
+func (c *Context) ParamUInt(key string) uint {
 	idstr := c.Param(key)
 	id, _ := strconv.Atoi(idstr)
-	return c, uint(id)
+	return uint(id)
 }
 
 // ParamInt int参数
-func (c *Context) ParamInt(key string) (*Context, int) {
-	_, n := c.ParamUInt(key)
-	return c, int(n)
+func (c *Context) ParamInt(key string) int {
+	return int(c.ParamUInt(key))
 }
 
 // QueryInt int参数
-func (c *Context) QueryInt(key string) (*Context, int) {
+func (c *Context) QueryInt(key string) int {
 	idstr := c.Query(key)
 	n, _ := strconv.Atoi(idstr)
-	return c, n
+	return n
 }
 
 // QueryUInt int参数
-func (c *Context) QueryUInt(key string) (*Context, uint) {
-	_, n := c.QueryInt(key)
-	return c, uint(n)
+func (c *Context) QueryUInt(key string) uint {
+	return uint(c.QueryInt(key))
+}
+
+// GetUser 根据Token获取用户信息
+func (c *Context) GetUser() UserClaims {
+	claims, _ := c.Get("claims")
+	if claims == nil {
+		return UserClaims{}
+	}
+	return claims.(UserClaims)
 }
