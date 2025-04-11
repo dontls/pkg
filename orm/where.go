@@ -9,7 +9,7 @@ import (
 // wValues 分页条件
 type wValue struct {
 	Where string
-	Value []interface{}
+	Value []any
 }
 
 type DbPage struct {
@@ -31,7 +31,7 @@ func (o *DbPage) DbWhere() *DbWhere {
 }
 
 // Add  添加条件
-func (o *DbWhere) Add(query string, args ...interface{}) *DbWhere {
+func (o *DbWhere) Add(query string, args ...any) *DbWhere {
 	if args != nil {
 		o.wheres = append(o.wheres, wValue{Where: query, Value: args})
 	}
@@ -47,7 +47,7 @@ func (o *DbWhere) In(query, values string) *DbWhere {
 }
 
 // Equal
-func (o *DbWhere) Equal(field string, v interface{}) *DbWhere {
+func (o *DbWhere) Equal(field string, v any) *DbWhere {
 	switch v := v.(type) {
 	case string:
 		if v == "" {
@@ -91,14 +91,14 @@ func (o *DbWhere) DateRange(field string, r []string) *DbWhere {
 	return o
 }
 
-func (o *DbWhere) Find(out interface{}, conds ...interface{}) (int64, error) {
+func (o *DbWhere) Find(out any, conds ...any) (int64, error) {
 	if o.total < 1 {
 		return 0, nil
 	}
 	return o.total, o.db.Find(out, conds...).Error
 }
 
-func (o *DbWhere) Scan(out interface{}) (int64, error) {
+func (o *DbWhere) Scan(out any) (int64, error) {
 	if o.total < 1 {
 		return 0, nil
 	}
@@ -119,7 +119,7 @@ func (o *DbWhere) Preload(preloads ...string) *DbWhere {
 }
 
 // Preload 关联加载
-func (o *DbWhere) PreloadWith(query string, args ...interface{}) *DbWhere {
+func (o *DbWhere) PreloadWith(query string, args ...any) *DbWhere {
 	if o.total < 1 {
 		return o
 	}
@@ -128,13 +128,13 @@ func (o *DbWhere) PreloadWith(query string, args ...interface{}) *DbWhere {
 }
 
 // Joins join
-func (o *DbWhere) Joins(query string, args ...interface{}) *DbWhere {
+func (o *DbWhere) Joins(query string, args ...any) *DbWhere {
 	o.db = o.db.Joins(query, args...)
 	return o
 }
 
 // DbByWhere
-func (o *DbWhere) Model(m interface{}) *DbWhere {
+func (o *DbWhere) Model(m any) *DbWhere {
 	db := _db.Model(m)
 	for _, v := range o.wheres {
 		db = db.Where(v.Where, v.Value...)
