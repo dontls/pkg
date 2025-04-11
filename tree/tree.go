@@ -30,10 +30,10 @@ func (o *Builder) findChildren(i int, h2 func(int, int) bool) {
 
 // h1 判断主节点， h2判断子节点
 func (o *Builder) Do(obj any, h1 func(int) bool, h2 func(int, int) bool) any {
-	if reflect.TypeOf(obj).Kind() != reflect.Slice {
+	o.elem = reflect.ValueOf(obj)
+	if reflect.TypeOf(obj).Kind() != reflect.Slice || o.elem.Len() == 0 {
 		return nil
 	}
-	o.elem = reflect.ValueOf(obj)
 	if o.elem.Index(0).FieldByName(o.ChildName).Kind() != reflect.Slice {
 		return nil
 	}
