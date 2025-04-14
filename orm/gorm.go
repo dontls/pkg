@@ -50,25 +50,25 @@ func DbUpdateModel(model any) error {
 	return _db.Model(model).Updates(model).Error
 }
 
-// DbUpdateFields 更新指定列，
-// 默认匹配primary_key
-func DbUpdateFields(model any, fields ...string) error {
-	return _db.Model(model).Select(fields).Updates(model).Error
-}
-
 // DbUpdateModelBy 条件更新
 func DbUpdateModelBy(model any, where string, args ...any) error {
 	return _db.Where(where, args...).Updates(model).Error
 }
 
 // DbUpdateModelByID 更新
-func DbUpdateModelByID(model, id any) error {
+func DbUpdateByID(model, id any) error {
 	return _db.Where("ID = ?", id).Updates(model).Error
 }
 
+// DbUpdateFields 更新指定列，
+// 默认匹配primary_key
+func DbUpdateFields(model any, fields ...string) error {
+	return _db.Model(model).Select(fields).Updates(model).Error
+}
+
 // DbUpdateByID 更新
-// 如果id是数组，则批量更新
-func DbUpdateByID(model any, ids any, value map[string]any) error {
+// 如果id是数组，则批量更新, 这是不使用H, gorm不识别
+func DbUpdateValues(model any, ids any, value map[string]any) error {
 	return _db.Model(model).Where("ID in (?)", ids).Updates(value).Error
 }
 
@@ -77,8 +77,7 @@ func DbDeletes(value any) error {
 	return _db.Delete(value).Error
 }
 
-// DbDeleteByIds 批量删除
-// ids id数组 []
+// DbDeleteByIds 批量删除 id数组[]
 func DbDeleteByIDs(model, ids any) error {
 	return _db.Delete(model, ids).Error
 }
@@ -101,7 +100,7 @@ func DbFirstBy(out any, where string, args ...any) (err error) {
 }
 
 // DbFirstByID 查找
-func DbFirstByID(out any, id uint) error {
+func DbFirstByID(out any, id any) error {
 	return _db.First(out, id).Error
 }
 
