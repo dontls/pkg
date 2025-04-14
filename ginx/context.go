@@ -41,19 +41,14 @@ func JSON(c *gin.Context) *Context {
 	return &Context{Context: c, rData: rData{Code: StatusOK, Msg: "OK"}}
 }
 
-// SetMsg 设置消息体的内容int
-func (c *Context) SetMsg(msg string) *Context {
-	c.Msg = msg
-	return c
-}
-
-// SetCode 设置消息体的编码
-func (c *Context) SetCode(code int) *Context {
+// JSONWriteMsg 自定义错误应答
+func (c *Context) JSONWriteMsg(code int, err error) {
 	c.Code = code
-	return c
+	c.Msg = err.Error()
+	c.JSON(http.StatusOK, c.rData)
 }
 
-// WriteError db 错误应答
+// WriteError 内部错误
 func (c *Context) JSONWriteError(err error) {
 	if err != nil {
 		c.Code = StatusError
@@ -64,29 +59,23 @@ func (c *Context) JSONWriteError(err error) {
 
 // WriteData 输出json到客户端， 有data字段
 func (c *Context) JSONWriteData(data any, errs ...error) {
-	if len(errs) == 0 {
-		c.rData.Data = data
-		c.JSON(http.StatusOK, c.rData)
+	if len(errs) > 0 {
+		c.JSONWriteError(errs[0])
 		return
 	}
-	c.JSONWriteError(errs[0])
+	c.rData.Data = data
+	c.JSON(http.StatusOK, c.rData)
 }
 
 // Write 输出json到客户端, 无data字段
 func (c *Context) JSONWrite(h H, errs ...error) {
-	if len(errs) == 0 {
-		h["code"] = c.Code
-		h["message"] = c.Msg
-		c.JSON(http.StatusOK, h)
+	if len(errs) > 0 {
+		c.JSONWriteError(errs[0])
 		return
 	}
-	c.JSONWriteError(errs[0])
-}
-
-func (c *Context) JSONWriteParamError(err error) {
-	c.Code = StatusParamErr
-	c.Msg = err.Error()
-	c.JSON(http.StatusOK, c.rData)
+	h["code"] = c.Code
+	h["message"] = c.Msg
+	c.JSON(http.StatusOK, h)
 }
 
 // WriteData 输出json到客户端， 有data字段
@@ -97,7 +86,7 @@ func (c *Context) JSONWriteTotal(n int64, data any) {
 func (c *Context) MustBind(v any) error {
 	err := c.ShouldBind(v)
 	if err != nil {
-		c.JSONWriteParamError(err)
+		c.JSONWriteMsg(StatusParamErr, err)
 	}
 	return err
 }
@@ -106,7 +95,7 @@ func (c *Context) MustBind(v any) error {
 func (c *Context) MustParam(key string) string {
 	idstr := c.Param(key)
 	if idstr == "" {
-		c.JSONWriteParamError(fmt.Errorf("%s empty", key))
+		c.JSONWriteMsg(StatusParamErr, fmt.Errorf("%s empty", key))
 	}
 	return idstr
 }

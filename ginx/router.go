@@ -1,80 +1,45 @@
 package ginx
 
-import (
-	"context"
-	"fmt"
-	"net/http"
-	"time"
+import "github.com/gin-gonic/gin"
 
-	"github.com/gin-gonic/gin"
-)
-
-type RouterFunc func(*RouterGroup)
-
-type router struct {
-	key     string
-	handler RouterFunc
+type RouterGroup struct {
+	*gin.RouterGroup
 }
 
-var (
-	routers     []router
-	authRouters []router
-)
+type HandlerFunc func(*Context)
 
-func Register(root string, h RouterFunc) {
-	routers = append(routers, router{key: root, handler: h})
+func (rg *RouterGroup) Group(relativePath string) *RouterGroup {
+	return &RouterGroup{RouterGroup: rg.RouterGroup.Group(relativePath)}
 }
 
-func RegisterAuth(root string, h RouterFunc) {
-	authRouters = append(authRouters, router{key: root, handler: h})
+func (rg *RouterGroup) Register(relativePath string, r RouterFunc) {
+	r(rg.Group(relativePath))
 }
 
-// 顺序，1->普通url， 2->jwtUrl, 3->tokenUrl
-func Use(r ...*gin.RouterGroup) {
-	// gin.DebugPrintRouteFunc = func(httpMethod, absolutePath, handlerName string, nuHandlers int) {
-	// 	fmt.Printf("%-6s %s \n", httpMethod, absolutePath)
-	// }
-	if len(r) > 0 {
-		r1 := &RouterGroup{RouterGroup: r[0]}
-		for _, v := range routers {
-			v.handler(r1.Group(v.key))
-		}
-	}
-	if len(r) > 1 {
-		r1 := &RouterGroup{RouterGroup: r[1]}
-		for _, v := range authRouters {
-			v.handler(r1.Group(v.key))
-		}
-	}
-	if len(r) > 2 {
-		r1 := &RouterGroup{RouterGroup: r[2]}
-		for _, v := range authRouters {
-			v.handler(r1.Group(v.key))
-		}
-	}
+func (rg *RouterGroup) hookHandler(ctx *gin.Context, handler HandlerFunc) {
+	handler(JSON(ctx))
 }
 
-var s *http.Server
-
-func ListenAndServe(e *gin.Engine, port, timeout int) *http.Server {
-	s = &http.Server{
-		Addr:           fmt.Sprintf(":%d", port),
-		Handler:        e,
-		ReadTimeout:    time.Duration(timeout) * time.Second,
-		WriteTimeout:   time.Duration(timeout) * time.Second,
-		MaxHeaderBytes: 1 << 20,
-	}
-	go s.ListenAndServe()
-	return s
+func (rg *RouterGroup) POST(relativePath string, handler HandlerFunc) {
+	rg.RouterGroup.POST(relativePath, func(ctx *gin.Context) {
+		rg.hookHandler(ctx, handler)
+	})
 }
 
-func Release() error {
-	if s != nil {
-		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-		defer cancel()
-		s.Shutdown(ctx)
-		// catching ginx.Done(). timeout of 5 seconds.
-		<-ctx.Done()
-	}
-	return nil
+func (rg *RouterGroup) GET(relativePath string, handler HandlerFunc) {
+	rg.RouterGroup.GET(relativePath, func(ctx *gin.Context) {
+		rg.hookHandler(ctx, handler)
+	})
+}
+
+func (rg *RouterGroup) PUT(relativePath string, handler HandlerFunc) {
+	rg.RouterGroup.PUT(relativePath, func(ctx *gin.Context) {
+		rg.hookHandler(ctx, handler)
+	})
+}
+
+func (rg *RouterGroup) DELETE(relativePath string, handler HandlerFunc) {
+	rg.RouterGroup.DELETE(relativePath, func(ctx *gin.Context) {
+		rg.hookHandler(ctx, handler)
+	})
 }
