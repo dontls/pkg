@@ -59,7 +59,7 @@ func (c *Context) JSONWriteError(err error) {
 
 // WriteData 输出json到客户端， 有data字段
 func (c *Context) JSONWriteData(data any, errs ...error) {
-	if len(errs) > 0 {
+	if len(errs) > 0 && errs[0] != nil {
 		c.JSONWriteError(errs[0])
 		return
 	}
@@ -69,7 +69,7 @@ func (c *Context) JSONWriteData(data any, errs ...error) {
 
 // Write 输出json到客户端, 无data字段
 func (c *Context) JSONWrite(h H, errs ...error) {
-	if len(errs) > 0 {
+	if len(errs) > 0 && errs[0] != nil {
 		c.JSONWriteError(errs[0])
 		return
 	}
