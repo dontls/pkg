@@ -1,45 +1,79 @@
 package ginx
 
-import "github.com/gin-gonic/gin"
+import (
+	"github.com/gin-gonic/gin"
+)
 
+// HandlerFunc 自定义处理函数
+type HandlerFunc func(*Context)
+
+type IRouter interface {
+	Routers(*RouterGroup)
+}
+
+// RouterGroup 扩展自 gin.RouterGroup
 type RouterGroup struct {
 	*gin.RouterGroup
 }
 
-type HandlerFunc func(*Context)
-
+// NewGroup 创建路由组
 func (rg *RouterGroup) Group(relativePath string) *RouterGroup {
-	return &RouterGroup{RouterGroup: rg.RouterGroup.Group(relativePath)}
+	return &RouterGroup{
+		RouterGroup: rg.RouterGroup.Group(relativePath),
+	}
 }
 
-func (rg *RouterGroup) Register(relativePath string, r RouterFunc) {
-	r(rg.Group(relativePath))
+// Register 注册子路由组
+func (rg *RouterGroup) Routers(relativePath string, r IRouter) {
+	r.Routers(rg.Group(relativePath))
 }
 
-func (rg *RouterGroup) hookHandler(ctx *gin.Context, handler HandlerFunc) {
-	handler(JSON(ctx))
-}
-
-func (rg *RouterGroup) POST(relativePath string, handler HandlerFunc) {
-	rg.RouterGroup.POST(relativePath, func(ctx *gin.Context) {
-		rg.hookHandler(ctx, handler)
+// Handle 统一处理方法
+func (rg *RouterGroup) Handle(method, path string, handlers HandlerFunc) {
+	// 调用Gin原始方法
+	rg.RouterGroup.Handle(method, path, func(ctx *gin.Context) {
+		handlers(JSON(ctx))
 	})
 }
 
-func (rg *RouterGroup) GET(relativePath string, handler HandlerFunc) {
-	rg.RouterGroup.GET(relativePath, func(ctx *gin.Context) {
-		rg.hookHandler(ctx, handler)
-	})
+// HTTP方法封装 =========================================================
+
+// POST 添加POST路由
+func (rg *RouterGroup) POST(relativePath string, handlers HandlerFunc) {
+	rg.Handle("POST", relativePath, handlers)
 }
 
-func (rg *RouterGroup) PUT(relativePath string, handler HandlerFunc) {
-	rg.RouterGroup.PUT(relativePath, func(ctx *gin.Context) {
-		rg.hookHandler(ctx, handler)
-	})
+// GET 添加GET路由
+func (rg *RouterGroup) GET(relativePath string, handlers HandlerFunc) {
+	rg.Handle("GET", relativePath, handlers)
 }
 
-func (rg *RouterGroup) DELETE(relativePath string, handler HandlerFunc) {
-	rg.RouterGroup.DELETE(relativePath, func(ctx *gin.Context) {
-		rg.hookHandler(ctx, handler)
-	})
+// PUT 添加PUT路由
+func (rg *RouterGroup) PUT(relativePath string, handlers HandlerFunc) {
+	rg.Handle("PUT", relativePath, handlers)
+}
+
+// DELETE 添加DELETE路由
+func (rg *RouterGroup) DELETE(relativePath string, handlers HandlerFunc) {
+	rg.Handle("DELETE", relativePath, handlers)
+}
+
+// PATCH 添加PATCH路由
+func (rg *RouterGroup) PATCH(relativePath string, handlers HandlerFunc) {
+	rg.Handle("PATCH", relativePath, handlers)
+}
+
+// OPTIONS 添加OPTIONS路由
+func (rg *RouterGroup) OPTIONS(relativePath string, handlers HandlerFunc) {
+	rg.Handle("OPTIONS", relativePath, handlers)
+}
+
+// HEAD 添加HEAD路由
+func (rg *RouterGroup) HEAD(relativePath string, handlers HandlerFunc) {
+	rg.Handle("HEAD", relativePath, handlers)
+}
+
+// ANY 添加处理所有HTTP方法的路由
+func (rg *RouterGroup) ANY(relativePath string, handlers HandlerFunc) {
+	rg.Handle("", relativePath, handlers)
 }
