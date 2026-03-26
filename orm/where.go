@@ -85,7 +85,7 @@ func (o *DbWhere) TimeRange(field string, st, et string) *DbWhere {
 
 // DateRange
 func (o *DbWhere) DateRange(field string, r []string) *DbWhere {
-	if r != nil {
+	if len(r) == 2 {
 		o.TimeRange(field, r[0]+" 00:00:00", r[1]+" 23:59:59")
 	}
 	return o

@@ -1,4 +1,4 @@
-package ginx
+package gctx
 
 import (
 	"context"
@@ -9,11 +9,13 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type RouterFunc func(*RouterGroup)
+type RouterGroup = gin.RouterGroup
+
+type GroupHandlerFunc func(*RouterGroup)
 
 type router struct {
 	key     string
-	handler RouterFunc
+	handler GroupHandlerFunc
 }
 
 var (
@@ -21,11 +23,11 @@ var (
 	authRouters []router
 )
 
-func Register(root string, h RouterFunc) {
+func Register(root string, h GroupHandlerFunc) {
 	routers = append(routers, router{key: root, handler: h})
 }
 
-func RegisterAuth(root string, h RouterFunc) {
+func RegisterAuth(root string, h GroupHandlerFunc) {
 	authRouters = append(authRouters, router{key: root, handler: h})
 }
 
@@ -35,21 +37,18 @@ func Use(r ...*gin.RouterGroup) {
 	// 	fmt.Printf("%-6s %s \n", httpMethod, absolutePath)
 	// }
 	if len(r) > 0 {
-		r1 := &RouterGroup{RouterGroup: r[0]}
 		for _, v := range routers {
-			v.handler(r1.Group(v.key))
+			v.handler(r[0].Group(v.key))
 		}
 	}
 	if len(r) > 1 {
-		r1 := &RouterGroup{RouterGroup: r[1]}
 		for _, v := range authRouters {
-			v.handler(r1.Group(v.key))
+			v.handler(r[1].Group(v.key))
 		}
 	}
 	if len(r) > 2 {
-		r1 := &RouterGroup{RouterGroup: r[2]}
 		for _, v := range authRouters {
-			v.handler(r1.Group(v.key))
+			v.handler(r[2].Group(v.key))
 		}
 	}
 }

@@ -1,4 +1,4 @@
-package ginx
+package gctx
 
 import (
 	"errors"
@@ -27,7 +27,7 @@ var (
 )
 
 func signKey() string {
-	return "ginfast"
+	return "ginapi"
 }
 
 var JWTToken = &jwtToken{
@@ -106,7 +106,7 @@ func JWTAuth(r *gin.RouterGroup) *gin.RouterGroup {
 		// 登录时回返回token信息
 		// 前端需要把token存储到cookie或者本地localStorage中 不过需要跟后端协商过期时间 可以约定刷新令牌或者重新登录
 		token := c.Request.Header.Get("Authorization")
-		ctx := JSON(c)
+		ctx := NewCtx(c)
 		if !strings.Contains(token, "Bearer ") {
 			ctx.JSONWriteMsg(StatusForbidden, ErrTokenExpired)
 			c.Abort()
