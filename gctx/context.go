@@ -9,11 +9,11 @@ import (
 )
 
 var (
-	StatusOK           = 200  // 成功
-	StatusLoginExpired = 401  // 登录过期
-	StatusForbidden    = 403  // 无权限
-	StatusError        = 500  // 错误
-	StatusParamErr     = 5000 // 参数错误
+	StatusOK           = 200 // 成功
+	StatusLoginExpired = 401 // 登录过期
+	StatusForbidden    = 403 // 无权限
+	StatusError        = 500 // 错误
+	StatusParamErr     = 501 // 参数错误
 )
 
 type rData struct {
@@ -36,25 +36,6 @@ type H = gin.H
 type Ctx struct {
 	*Context
 	rData
-}
-
-func NewCtx(c *Context) *Ctx {
-	return &Ctx{Context: c, rData: rData{Code: StatusOK, Msg: "OK"}}
-}
-
-// WriteData 输出json到客户端， 有data字段
-func JSONWriteData(c *Context, data any, errs ...error) {
-	NewCtx(c).JSONWriteData(data, errs...)
-}
-
-// WriteError 内部错误
-func JSONWrite(c *Context, h H, errs ...error) {
-	NewCtx(c).JSONWrite(h, errs...)
-}
-
-// WriteError 内部错误
-func JSONWriteError(c *Context, err error) {
-	NewCtx(c).JSONWriteError(err)
 }
 
 // JSONWriteMsg 自定义错误应答
@@ -95,18 +76,37 @@ func (c *Ctx) JSONWrite(h gin.H, errs ...error) {
 }
 
 // WriteData 输出json到客户端， 有data字段
-func (c *Ctx) JSONWriteTotal(n int64, data any) {
+func (c *Ctx) JSONWriteTotal(n, data any) {
 	c.JSONWrite(gin.H{"total": n, "data": data})
 }
 
+func NewCtx(c *Context) *Ctx {
+	return &Ctx{Context: c, rData: rData{Code: StatusOK, Msg: "OK"}}
+}
+
+// WriteData 输出json到客户端， 有data字段
+func JSONWriteData(c *Context, data any, errs ...error) {
+	NewCtx(c).JSONWriteData(data, errs...)
+}
+
+// WriteError 内部错误
+func JSONWrite(c *Context, h H, errs ...error) {
+	NewCtx(c).JSONWrite(h, errs...)
+}
+
+// WriteError 内部错误
+func JSONWriteError(c *Context, err error) {
+	NewCtx(c).JSONWriteError(err)
+}
+
 func Bind(c *Context, v any) *Ctx {
-	ctx := &Ctx{Context: c}
+	ctx := NewCtx(c)
 	ctx.ShouldBind(v)
 	return ctx
 }
 
 func MustBind(c *Context, v any) (*Ctx, error) {
-	ctx := &Ctx{Context: c}
+	ctx := NewCtx(c)
 	err := ctx.ShouldBind(v)
 	if err != nil {
 		ctx.JSONWriteMsg(StatusParamErr, err)
@@ -116,7 +116,7 @@ func MustBind(c *Context, v any) (*Ctx, error) {
 
 // ParamUInt uint参数
 func MustParam(c *Context, key string) (*Ctx, string) {
-	ctx := &Ctx{Context: c}
+	ctx := NewCtx(c)
 	idstr := c.Param(key)
 	if idstr == "" {
 		ctx.JSONWriteMsg(StatusParamErr, fmt.Errorf("%s empty", key))
@@ -124,25 +124,23 @@ func MustParam(c *Context, key string) (*Ctx, string) {
 	return ctx, idstr
 }
 
-// ParamUInt uint参数
-func ParamUInt(c *Context, key string) (*Ctx, uint) {
-	ctx := &Ctx{Context: c}
-	idstr := ctx.Param(key)
-	id, _ := strconv.Atoi(idstr)
-	return ctx, uint(id)
-}
-
 // ParamInt int参数
 func ParamInt(c *Context, key string) (*Ctx, int) {
-	ctx, v := ParamUInt(c, key)
-	return ctx, int(v)
+	ctx := NewCtx(c)
+	v, _ := strconv.Atoi(ctx.Param(key))
+	return ctx, v
+}
+
+// ParamUInt uint参数
+func ParamUInt(c *Context, key string) (*Ctx, uint) {
+	ctx, v := ParamInt(c, key)
+	return ctx, uint(v)
 }
 
 // QueryInt int参数
 func QueryInt(c *Context, key string) (*Ctx, int) {
-	ctx := &Ctx{Context: c}
-	idstr := ctx.Query(key)
-	n, _ := strconv.Atoi(idstr)
+	ctx := NewCtx(c)
+	n, _ := strconv.Atoi(ctx.Query(key))
 	return ctx, n
 }
 
