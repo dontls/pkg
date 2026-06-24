@@ -3,6 +3,7 @@ package svc
 import (
 	"log"
 	"os"
+	"runtime/debug"
 
 	"github.com/kardianos/service"
 )
@@ -29,7 +30,7 @@ func ErrorOutput(filename string) {
 		if fi, err := file.Stat(); err == nil && fi.Size() > 51200 {
 			file.Truncate(0)
 		}
-		crashDup(file)
+		debug.SetCrashOutput(file, debug.CrashOptions{})
 	}
 }
 

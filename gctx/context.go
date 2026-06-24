@@ -99,6 +99,11 @@ func JSONWriteError(c *Context, err error) {
 	NewCtx(c).JSONWriteError(err)
 }
 
+// WriteData 输出json到客户端， 有data字段
+func JSONWriteTotal(c *Context, n, data any) {
+	NewCtx(c).JSONWriteTotal(n, data)
+}
+
 func Bind(c *Context, v any) *Ctx {
 	ctx := NewCtx(c)
 	ctx.ShouldBind(v)
